@@ -39,7 +39,7 @@ Browser ──POST /api/upload──> Next.js App ──enqueue──> BullMQ (R
 ### 1. Clone & install
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/vansh82674/omniflow.git
 cd omniflow
 npm install
 npm install-scripts approve prisma @prisma/engines esbuild
