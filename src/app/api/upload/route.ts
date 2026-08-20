@@ -32,6 +32,7 @@ async function extractTextFromFile(file: File): Promise<string> {
     const buffer = Buffer.from(await file.arrayBuffer());
     
     // Polyfill globals for pdf-parse/pdf.js in Node.js
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     if (typeof (global as any).DOMMatrix === 'undefined') {
       (global as any).DOMMatrix = class DOMMatrix {};
     }
@@ -41,6 +42,7 @@ async function extractTextFromFile(file: File): Promise<string> {
     if (typeof (global as any).ImageData === 'undefined') {
       (global as any).ImageData = class ImageData {};
     }
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     // pdf-parse CommonJS import
     // pdf-parse v2 API

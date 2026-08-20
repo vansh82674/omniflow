@@ -145,11 +145,11 @@ export default function LoginPage() {
               </div>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <button type="button" className="flex items-center justify-center gap-2 bg-zinc-950/50 hover:bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 transition-colors text-sm text-zinc-300">
+                <button type="button" onClick={() => signIn("github", { callbackUrl: "/dashboard" })} className="flex items-center justify-center gap-2 bg-zinc-950/50 hover:bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 transition-colors text-sm text-zinc-300">
                   <Command className="w-4 h-4" />
                   GitHub
                 </button>
-                <button type="button" className="flex items-center justify-center gap-2 bg-zinc-950/50 hover:bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 transition-colors text-sm text-zinc-300">
+                <button type="button" onClick={() => signIn("google", { callbackUrl: "/dashboard" })} className="flex items-center justify-center gap-2 bg-zinc-950/50 hover:bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 transition-colors text-sm text-zinc-300">
                   <Mail className="w-4 h-4" />
                   Google
                 </button>
