@@ -43,13 +43,15 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+import type { Variants } from "framer-motion";
+
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 30, scale: 0.95 },
   visible: { 
     opacity: 1, 
     y: 0, 
     scale: 1,
-    transition: { type: "spring", stiffness: 300, damping: 25 } 
+    transition: { type: "spring" as const, stiffness: 300, damping: 25 } 
   }
 };
 
@@ -182,7 +184,7 @@ export default function DocsPage() {
             <li className="relative pl-8 before:absolute before:left-0 before:top-2.5 before:w-3 before:h-3 before:bg-emerald-500 before:rounded-full before:shadow-[0_0_10px_rgba(16,185,129,0.5)]">
               <p className="text-sm text-emerald-500 font-semibold uppercase tracking-wider mb-2">Added today</p>
               <h4 className="text-xl font-bold mb-2">New Webhooks API v2</h4>
-              <p className="text-base text-muted-foreground leading-relaxed">We've redesigned our webhooks system to be more reliable and easier to integrate. Now supporting strict signature verification.</p>
+              <p className="text-base text-muted-foreground leading-relaxed">We&apos;ve redesigned our webhooks system to be more reliable and easier to integrate. Now supporting strict signature verification.</p>
             </li>
             <li className="relative pl-8 before:absolute before:left-0 before:top-2.5 before:w-3 before:h-3 before:bg-neutral-300 dark:before:bg-neutral-600 before:rounded-full">
               <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider mb-2">Last week</p>
@@ -198,7 +200,7 @@ export default function DocsPage() {
               <BookOpen className="w-6 h-6 text-blue-500" />
             </div>
             <h3 className="text-2xl font-bold mb-3">Need help?</h3>
-            <p className="text-base text-muted-foreground mb-8 leading-relaxed">Can't find what you're looking for? Our elite support team is here to help you debug and scale.</p>
+            <p className="text-base text-muted-foreground mb-8 leading-relaxed">Can&apos;t find what you&apos;re looking for? Our elite support team is here to help you debug and scale.</p>
           </div>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="relative z-10">
             <Button variant="outline" className="w-full rounded-2xl h-14 justify-between group-hover/btn border-border/50 hover:bg-muted text-base font-semibold transition-all">

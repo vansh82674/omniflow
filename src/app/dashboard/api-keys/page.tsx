@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Check, Plus, Key, Eye, EyeOff, ShieldAlert, Sparkles } from "lucide-react";
+import { Copy, Check, Plus, Key, Eye, EyeOff, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const initialKeys = [
