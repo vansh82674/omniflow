@@ -4,19 +4,25 @@ import Credentials from "next-auth/providers/credentials"
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
-      name: "Admin Access",
+      name: "Credentials",
       credentials: {
-        password: { label: "Password (hint: omniflow)", type: "password" },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-        if (credentials.password === "omniflow") {
-          return { id: "1", name: "Enterprise Admin" }
+        if (credentials?.password === "password123" && credentials?.email) {
+          return {
+            id: "1",
+            name: "Enterprise Admin",
+            email: credentials.email as string,
+            image: "https://i.pravatar.cc/150?u=admin",
+          }
         }
         return null
       },
     }),
   ],
   pages: {
-    // NextAuth provides a default signin page, which is perfect for MVP.
+    signIn: "/login",
   }
 })

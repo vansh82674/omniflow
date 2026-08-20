@@ -3,10 +3,10 @@ import { NextResponse } from "next/server"
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
-  // Protect the root dashboard route
-  if (req.nextUrl.pathname === "/") {
+  // Protect the dashboard route
+  if (req.nextUrl.pathname.startsWith("/dashboard")) {
     if (!isLoggedIn) {
-      return NextResponse.redirect(new URL("/api/auth/signin", req.url));
+      return NextResponse.redirect(new URL("/login", req.url));
     }
   }
   return NextResponse.next();
