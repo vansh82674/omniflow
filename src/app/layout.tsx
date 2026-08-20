@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,17 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <Toaster
+              position="bottom-right"
+              theme="dark"
+              toastOptions={{
+                style: {
+                  background: "#18181b",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#f4f4f5",
+                },
+              }}
+            />
           </ThemeProvider>
         </SessionProvider>
       </body>

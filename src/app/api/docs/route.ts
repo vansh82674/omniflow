@@ -1,27 +1,37 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const docs = [
+  {
+    id: 1,
+    title: 'Getting Started',
+    excerpt: 'Learn how to upload your first document and view extraction results.',
+    slug: 'getting-started',
+  },
+  {
+    id: 2,
+    title: 'API Reference',
+    excerpt: 'Detailed reference for all available OmniFlow API endpoints.',
+    slug: 'api-reference',
+  },
+  {
+    id: 3,
+    title: 'Webhooks Guide',
+    excerpt: 'How to set up and verify webhooks for job completion events.',
+    slug: 'webhooks',
+  },
+  {
+    id: 4,
+    title: 'Rate Limits',
+    excerpt: "Understanding your plan's rate limits and quotas.",
+    slug: 'rate-limits',
+  },
+];
 
 export async function GET() {
-  // Simulate network delay between 500ms and 1500ms
-  await sleep(Math.random() * 1000 + 500);
-
-  // Simulate server error on 10% of requests
-  if (Math.random() < 0.1) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-
-  // Simulate empty state on 10% of successful requests
-  if (Math.random() < 0.1) {
-    return NextResponse.json([]);
-  }
-
-  const dummyDocs = [
-    { id: 1, title: "Getting Started", excerpt: "Learn how to use OmniFlow in 5 minutes." },
-    { id: 2, title: "API Reference", excerpt: "Detailed reference for all available endpoints." },
-    { id: 3, title: "Webhooks Guide", excerpt: "How to set up and verify webhooks for events." },
-    { id: 4, title: "Rate Limits", excerpt: "Understanding your tier's rate limits and quotas." },
-  ];
-
-  return NextResponse.json(dummyDocs);
+  return NextResponse.json(docs);
 }

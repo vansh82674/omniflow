@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String   // bcrypt hash
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobs    Job[]
+  apiKeys ApiKey[]
+}
+
+model Job {
+  id           String   @id @default(cuid())
+  bullmqId     String?  @unique // the BullMQ job ID
+  userId       String
+  filename     String
+  status       String   @default("waiting") // waiting | active | completed | failed
+  result       String?  // JSON string of extraction result
+  failedReason String?
+  fileType     String?  // pdf | docx | txt | etc.
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String
+  keyHash   String    @unique // hashed key
+  keyPrefix String    // first 8 chars for display e.g. "sk_live_"
+  type      String    @default("live") // live | test
+  lastUsed  DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

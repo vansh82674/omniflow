@@ -1,26 +1,102 @@
-import { NextResponse } from "next/server";
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 export async function GET() {
-  // Simulate network delay between 500ms and 1500ms
-  await sleep(Math.random() * 1000 + 500);
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-  // Simulate server error on 10% of requests
-  if (Math.random() < 0.1) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const keys = await prisma.apiKey.findMany({
+      where: { userId: session.user.id, revokedAt: null },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        keyPrefix: true,
+        type: true,
+        lastUsed: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json(keys);
+  } catch (error) {
+    console.error('Error fetching API keys:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+}
 
-  // Simulate empty state on 10% of successful requests
-  if (Math.random() < 0.1) {
-    return NextResponse.json([]);
+export async function POST(request: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { name, type = 'live' } = body;
+
+    if (!name?.trim()) {
+      return NextResponse.json({ error: 'Key name is required' }, { status: 400 });
+    }
+
+    // Generate a secure random API key
+    const rawKey = `sk_${type === 'test' ? 'test' : 'live'}_${crypto.randomBytes(32).toString('hex')}`;
+    const keyHash = await bcrypt.hash(rawKey, 12);
+    const keyPrefix = rawKey.substring(0, 12) + '...';
+
+    const apiKey = await prisma.apiKey.create({
+      data: {
+        userId: session.user.id,
+        name: name.trim(),
+        keyHash,
+        keyPrefix,
+        type,
+      },
+    });
+
+    // Return the raw key ONCE — never again
+    return NextResponse.json({
+      id: apiKey.id,
+      name: apiKey.name,
+      key: rawKey, // only returned on creation
+      keyPrefix,
+      type,
+      createdAt: apiKey.createdAt,
+    }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating API key:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+}
 
-  const dummyApiKeys = [
-    { id: 1, name: "Production Key", key: "sk_prod_...", created: "2024-01-10", lastUsed: "10 mins ago" },
-    { id: 2, name: "Development Key", key: "sk_test_...", created: "2024-02-15", lastUsed: "1 day ago" },
-    { id: 3, name: "Revoked Key", key: "sk_revoked_...", created: "2023-10-01", lastUsed: "6 months ago" },
-  ];
+export async function DELETE(request: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-  return NextResponse.json(dummyApiKeys);
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Key ID required' }, { status: 400 });
+    }
+
+    await prisma.apiKey.updateMany({
+      where: { id, userId: session.user.id },
+      data: { revokedAt: new Date() },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error revoking API key:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }
