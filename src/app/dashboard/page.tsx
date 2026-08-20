@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSession } from "next-auth/react";
 
 // --- Types ---
 type QueueItem = {
@@ -39,6 +40,7 @@ export default function OmniFlowDashboard() {
   const [isDraggingGlobal, setIsDraggingGlobal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const { data: session } = useSession();
 
   // Polling mechanism
   useEffect(() => {
@@ -140,12 +142,12 @@ export default function OmniFlowDashboard() {
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center gap-3">
             <Avatar className="h-8 w-8 rounded-full border border-white/10">
-              <AvatarImage src="https://github.com/shadcn.png" alt="@admin" />
-              <AvatarFallback className="bg-zinc-800 text-xs">AD</AvatarFallback>
+              <AvatarImage src={session?.user?.image || "https://github.com/shadcn.png"} alt={session?.user?.name || "@admin"} />
+              <AvatarFallback className="bg-zinc-800 text-xs">{session?.user?.name?.substring(0, 2).toUpperCase() || "AD"}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="text-xs font-medium text-zinc-200">Admin User</span>
-              <span className="text-[10px] text-zinc-500">Enterprise Plan</span>
+              <span className="text-xs font-medium text-zinc-200">{session?.user?.name || "Admin User"}</span>
+              <span className="text-[10px] text-zinc-500">{session?.user?.email || "Enterprise Plan"}</span>
             </div>
           </div>
         </div>
