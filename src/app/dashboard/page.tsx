@@ -3,15 +3,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  UploadCloud, CheckCircle2, Loader2, AlertCircle, ArrowRight,
+  UploadCloud, Loader2, ArrowRight,
   Sparkles, Settings, FileText, X, LayoutDashboard, 
-  Workflow, KeyRound, Search, Bell, Command, MoreHorizontal,
+  Workflow, KeyRound, Search, Bell, Command,
   ChevronRight, BrainCircuit, Activity
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession } from "next-auth/react";
 
@@ -21,6 +20,7 @@ type QueueItem = {
   name: string;
   status: "active" | "waiting" | "completed" | "failed" | "processing";
   time: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   result?: any;
 };
 
@@ -39,7 +39,6 @@ export default function OmniFlowDashboard() {
   const [selectedResult, setSelectedResult] = useState<string | null>(null);
   const [isDraggingGlobal, setIsDraggingGlobal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const { data: session } = useSession();
 
   // Polling mechanism
@@ -70,7 +69,6 @@ export default function OmniFlowDashboard() {
 
   const handleUpload = async (file: File) => {
     try {
-      setIsUploading(true);
       const formData = new FormData();
       formData.append("content", file);
 
@@ -78,7 +76,6 @@ export default function OmniFlowDashboard() {
       setQueue(prev => [{ id: tempId, name: file.name, status: "waiting", time: "Just now" }, ...prev]);
 
       const res = await fetch("/api/upload", { method: "POST", body: formData });
-      setIsUploading(false);
 
       if (res.status === 429) {
         alert("Rate limit exceeded. Please try again in a minute.");
@@ -96,7 +93,6 @@ export default function OmniFlowDashboard() {
       ));
 
     } catch (error) {
-      setIsUploading(false);
       console.error(error);
       alert("Failed to upload document.");
     }

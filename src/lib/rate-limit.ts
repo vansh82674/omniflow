@@ -8,6 +8,7 @@ export async function checkRateLimit(ip: string, limit: number, windowSecs: numb
     .multi()
     .incr(key)
     .expire(key, windowSecs, 'NX') // 'NX' only sets expiry if it doesn't already have one
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .exec() as any;
 
   // current[1] contains the result of the INCR command
