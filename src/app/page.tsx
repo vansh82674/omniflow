@@ -10,7 +10,8 @@ import {
   ArrowRight,
   Sparkles,
   Settings,
-  FileText
+  FileText,
+  X
 } from "lucide-react";
 
 // --- Types ---
@@ -106,11 +107,11 @@ function DropZone({ onUpload }: { onUpload: (file: File) => void }) {
   );
 }
 
-function QueueFeed({ queue }: { queue: QueueItem[] }) {
+function QueueFeed({ queue, onSelect }: { queue: QueueItem[], onSelect: (result: any) => void }) {
   const activeCount = queue.filter(q => ['active', 'waiting', 'processing'].includes(q.status)).length;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 border-l border-zinc-900">
+    <div className="flex flex-col h-full bg-zinc-950 border-l border-zinc-900 relative">
       <div className="p-6 border-b border-zinc-900 flex items-center justify-between">
         <h3 className="text-sm font-medium text-zinc-200 flex items-center gap-2">
           {activeCount > 0 ? (
@@ -165,11 +166,7 @@ function QueueFeed({ queue }: { queue: QueueItem[] }) {
                     whileTap={{ scale: 0.9 }}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-zinc-800 rounded-md"
                     onClick={() => {
-                      if (item.result) {
-                        alert(JSON.stringify(JSON.parse(item.result), null, 2));
-                      } else {
-                        alert('No result yet');
-                      }
+                      if (item.result) onSelect(item.result);
                     }}
                   >
                     <ArrowRight className="w-3.5 h-3.5 text-zinc-400" />
@@ -184,8 +181,11 @@ function QueueFeed({ queue }: { queue: QueueItem[] }) {
   );
 }
 
+// --- Main Layout ---
+
 export default function OmniFlowDashboard() {
   const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [selectedResult, setSelectedResult] = useState<string | null>(null);
 
   // Polling mechanism
   useEffect(() => {
@@ -208,7 +208,7 @@ export default function OmniFlowDashboard() {
           console.error("Polling error for job", job.id, error);
         }
       });
-    }, 2000); // Poll every 2 seconds
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [queue]);
@@ -218,20 +218,20 @@ export default function OmniFlowDashboard() {
       const formData = new FormData();
       formData.append("content", file);
 
-      // Optimistically add to queue
       const tempId = `tmp-${Date.now()}`;
       setQueue(prev => [{ id: tempId, name: file.name, status: "waiting", time: "Just now" }, ...prev]);
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
 
+      if (res.status === 429) {
+        alert("Rate limit exceeded. Please try again in a minute.");
+        setQueue(prev => prev.filter(q => q.id !== tempId));
+        return;
+      }
       if (!res.ok) throw new Error("Upload failed");
       
       const data = await res.json();
       
-      // Update the temporary item with real Job ID
       setQueue(prev => prev.map(q => 
         q.id === tempId 
           ? { ...q, id: data.jobId, status: "active" } 
@@ -245,9 +245,9 @@ export default function OmniFlowDashboard() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-zinc-950 text-zinc-50 flex flex-col md:flex-row font-sans selection:bg-blue-500/30">
+    <div className="min-h-[100dvh] bg-zinc-950 text-zinc-50 flex flex-col md:flex-row font-sans selection:bg-blue-500/30 overflow-hidden relative">
       {/* Left Panel: Hero & Upload */}
-      <div className="flex-1 p-6 md:p-12 lg:p-20 flex flex-col justify-center max-w-4xl mx-auto md:mx-0 w-full">
+      <div className="flex-1 p-6 md:p-12 lg:p-20 flex flex-col justify-center max-w-4xl mx-auto md:mx-0 w-full relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -256,7 +256,7 @@ export default function OmniFlowDashboard() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-400 mb-8">
             <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-            <span>Gemini 1.5 Pro Engine Active</span>
+            <span>Gemini 3.6 Flash Engine Active</span>
           </div>
           
           <h1 className="text-4xl md:text-5xl tracking-tighter font-semibold text-zinc-100 leading-[1.1] mb-5">
@@ -271,9 +271,64 @@ export default function OmniFlowDashboard() {
       </div>
 
       {/* Right Panel: Live Queue */}
-      <div className="w-full md:w-[400px] lg:w-[480px] shrink-0 border-t md:border-t-0 md:border-l border-zinc-900">
-        <QueueFeed queue={queue} />
+      <div className="w-full md:w-[400px] lg:w-[480px] shrink-0 border-t md:border-t-0 md:border-l border-zinc-900 z-10">
+        <QueueFeed queue={queue} onSelect={(res) => setSelectedResult(res)} />
       </div>
+
+      {/* Result Modal Overlay */}
+      <AnimatePresence>
+        {selectedResult && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-zinc-950/80 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ ease: [0.23, 1, 0.32, 1], duration: 0.4 }}
+              className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-zinc-800 bg-zinc-900/50">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-medium text-zinc-200">Structured Extraction Data</span>
+                </div>
+                <button 
+                  onClick={() => setSelectedResult(null)}
+                  className="p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 rounded-md transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-4 overflow-auto flex-1 bg-zinc-950">
+                <pre className="text-xs text-zinc-300 font-mono leading-relaxed">
+                  {(() => {
+                    try {
+                      return JSON.stringify(JSON.parse(selectedResult), null, 2);
+                    } catch {
+                      return selectedResult;
+                    }
+                  })()}
+                </pre>
+              </div>
+              <div className="p-4 border-t border-zinc-800 bg-zinc-900 flex justify-end">
+                <motion.button 
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedResult);
+                  }}
+                  className="text-xs font-medium bg-zinc-100 text-zinc-900 px-4 py-2 rounded-md hover:bg-white transition-colors"
+                >
+                  Copy to Clipboard
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

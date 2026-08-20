@@ -6,10 +6,10 @@ const documentQueue = new Queue('document-extraction', { connection: redis });
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const job = await documentQueue.getJob(id);
 
     if (!job) {

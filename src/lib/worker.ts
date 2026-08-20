@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Worker, Job } from 'bullmq';
 import { redis } from './redis';
 import { GoogleGenAI, Type } from '@google/genai';
@@ -12,7 +13,7 @@ const worker = new Worker(
     
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-3.6-flash',
         contents: `Extract information from the following document:\n\n${content}`,
         config: {
             responseMimeType: "application/json",
