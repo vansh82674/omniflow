@@ -89,7 +89,7 @@ export default function DocsPage() {
             <li className="relative pl-6 before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:bg-emerald-500 before:rounded-full">
               <p className="text-sm text-emerald-500 font-medium mb-1">Added today</p>
               <h4 className="font-semibold mb-1">New Webhooks API v2</h4>
-              <p className="text-sm text-muted-foreground">We've redesigned our webhooks system to be more reliable and easier to integrate. Now supporting signature verification.</p>
+              <p className="text-sm text-muted-foreground">We&apos;ve redesigned our webhooks system to be more reliable and easier to integrate. Now supporting signature verification.</p>
             </li>
             <li className="relative pl-6 before:absolute before:left-0 before:top-2 before:w-2 before:h-2 before:bg-neutral-300 before:rounded-full">
               <p className="text-sm text-muted-foreground font-medium mb-1">Last week</p>
@@ -101,7 +101,7 @@ export default function DocsPage() {
         <div className="bg-card border border-border/50 rounded-2xl p-8 flex flex-col justify-between">
           <div>
             <h3 className="text-xl font-semibold mb-2">Need help?</h3>
-            <p className="text-sm text-muted-foreground mb-6">Can't find what you're looking for? Our support team is here to help.</p>
+            <p className="text-sm text-muted-foreground mb-6">Can&apos;t find what you&apos;re looking for? Our support team is here to help.</p>
           </div>
           <Button variant="outline" className="w-full rounded-xl justify-between group">
             Contact Support

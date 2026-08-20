@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Plus, Play, Pause, Clock, CheckCircle2, XCircle, MoreVertical } from "lucide-react";
+import { Plus, Play, Pause, Clock, XCircle, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const dummyWorkflows = [
