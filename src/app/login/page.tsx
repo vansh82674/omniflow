@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrainCircuit, Globe, Mail, ArrowRight, Command } from "lucide-react";
+import { BrainCircuit, Mail, ArrowRight, Command } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
