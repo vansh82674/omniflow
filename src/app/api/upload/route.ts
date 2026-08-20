@@ -30,7 +30,13 @@ export async function POST(request: Request) {
       contentToProcess = fileOrText;
     }
 
-    const job = await documentQueue.add('extract', { content: contentToProcess });
+    const job = await documentQueue.add('extract', { content: contentToProcess }, {
+      attempts: 5,
+      backoff: {
+        type: 'exponential',
+        delay: 60000, // wait 60s before retrying (fits Gemini free tier limits)
+      }
+    });
 
     return NextResponse.json({ jobId: job.id, message: 'Job added successfully' }, { status: 202 });
   } catch (error) {
