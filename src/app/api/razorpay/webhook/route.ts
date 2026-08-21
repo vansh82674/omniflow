@@ -6,9 +6,10 @@ export async function POST(req: Request) {
   try {
     const body = await req.text();
     const signature = req.headers.get('x-razorpay-signature');
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET!;
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET?.trim() || '';
 
     if (!signature) {
+      console.error('[Razorpay Webhook] No signature found in headers.');
       return NextResponse.json({ error: 'No signature found' }, { status: 400 });
     }
 
@@ -18,6 +19,7 @@ export async function POST(req: Request) {
       .digest('hex');
 
     if (expectedSignature !== signature) {
+      console.error(`[Razorpay Webhook] Invalid signature! Secret may be mismatched. Expected: ${expectedSignature}, Got: ${signature}`);
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
