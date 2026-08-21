@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export async function authenticateApiRequest(req: Request): Promise<{ userId: string } | null> {
   // 1. Try NextAuth session (for web dashboard calls)
@@ -14,25 +14,20 @@ export async function authenticateApiRequest(req: Request): Promise<{ userId: st
   if (authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
     if (token) {
-      // Fetch all active keys. 
-      // Note: In a large scale production system, API keys should be generated with an ID prefix 
-      // (e.g. `sk_live_<id>_<secret>`) to avoid O(N) bcrypt comparisons, or hashed via SHA-256.
-      // For this implementation, we preserve existing bcrypt functionality.
-      const activeKeys = await prisma.apiKey.findMany({
-        where: { revokedAt: null },
+      const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+      
+      const apiKey = await prisma.apiKey.findUnique({
+        where: { keyHash: hashedToken }
       });
 
-      for (const apiKey of activeKeys) {
-        const isValid = await bcrypt.compare(token, apiKey.keyHash);
-        if (isValid) {
-          // Fire and forget updating lastUsed
-          prisma.apiKey.update({
-            where: { id: apiKey.id },
-            data: { lastUsed: new Date() },
-          }).catch(console.error);
+      if (apiKey && !apiKey.revokedAt) {
+        // Fire and forget updating lastUsed
+        prisma.apiKey.update({
+          where: { id: apiKey.id },
+          data: { lastUsed: new Date() },
+        }).catch(console.error);
 
-          return { userId: apiKey.userId };
-        }
+        return { userId: apiKey.userId };
       }
     }
   }

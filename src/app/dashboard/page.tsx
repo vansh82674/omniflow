@@ -7,7 +7,7 @@ import {
   Sparkles, FileText, X,
   Search, Bell, Command,
   ChevronRight, Activity,
-  AlertCircle, CheckCircle2, Clock, TrendingUp
+  AlertCircle, CheckCircle2, Clock, TrendingUp, Settings2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -61,10 +61,16 @@ export default function OmniFlowDashboard() {
   const [selectedResult, setSelectedResult] = useState<string | null>(null);
   const [isDraggingGlobal, setIsDraggingGlobal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [extractionSchema, setExtractionSchema] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Track active job IDs in a ref to avoid polling re-render loops
+  // Track active job IDs in a ref
   const activeJobIdsRef = useRef<Set<string>>(new Set());
+
+  // SSE connection reference
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   // Fetch metrics and job history on mount
   const fetchDashboardData = useCallback(async () => {
@@ -117,57 +123,61 @@ export default function OmniFlowDashboard() {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  // Stable polling: only polls active job IDs from a ref — doesn't restart on every queue update
+  // Use SSE instead of polling
   useEffect(() => {
-    const pollInterval = setInterval(async () => {
-      const activeIds = [...activeJobIdsRef.current];
-      if (activeIds.length === 0) return;
+    eventSourceRef.current = new EventSource("/api/jobs/stream");
 
-      await Promise.all(
-        activeIds.map(async (jobId) => {
-          try {
-            const res = await fetch(`/api/job/${jobId}`);
-            if (!res.ok) return;
-            const data = await res.json();
+    eventSourceRef.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (Array.isArray(data)) {
+          // data is an array of latest jobs from DB
+          const finished = data
+            .filter((j: { status: string }) => ["completed", "failed"].includes(j.status))
+            .map((j: { id: string; filename: string; status: string; createdAt: string; result?: string; fileType?: string }) => ({
+              id: j.id,
+              name: j.filename,
+              status: j.status as QueueItem["status"],
+              time: timeAgo(j.createdAt),
+              result: j.result,
+              fileType: j.fileType,
+            }));
 
-            if (["completed", "failed"].includes(data.status)) {
-              activeJobIdsRef.current.delete(jobId);
+          const active = data
+            .filter((j: { status: string }) => ["waiting", "active"].includes(j.status))
+            .map((j: { id: string; filename: string; status: string; createdAt: string }) => ({
+              id: j.id,
+              name: j.filename,
+              status: j.status as QueueItem["status"],
+              time: timeAgo(j.createdAt),
+            }));
 
-              setQueue(prev => prev.filter(q => q.id !== jobId));
-              setHistoryJobs(prev => [
-                {
-                  id: data.id,
-                  name: data.name,
-                  status: data.status,
-                  time: "just now",
-                  result: data.result,
-                  fileType: data.fileType,
-                },
-                ...prev,
-              ]);
+          // Process transitions for toasts
+          setQueue(prev => {
+            const prevIds = new Set(prev.map(p => p.id));
+            const newFinished = finished.filter((f: QueueItem) => prevIds.has(f.id));
+            
+            newFinished.forEach((j: QueueItem) => {
+              if (j.status === "completed") toast.success(`Extraction complete: ${j.name}`);
+              if (j.status === "failed") toast.error(`Extraction failed: ${j.name}`);
+            });
 
-              // Refresh metrics
-              fetch("/api/metrics").then(r => r.ok ? r.json() : null).then(d => d && setMetrics(d));
+            return active;
+          });
 
-              if (data.status === "completed") {
-                toast.success(`Extraction complete: ${data.name}`);
-              } else {
-                toast.error(`Extraction failed: ${data.name}`);
-              }
-            } else {
-              setQueue(prev =>
-                prev.map(q => q.id === jobId ? { ...q, status: data.status } : q)
-              );
-            }
-          } catch {
-            // silent
-          }
-        })
-      );
-    }, 2500);
+          setHistoryJobs(finished);
+        }
+      } catch {
+        // Init or non-json message
+      }
+    };
 
-    return () => clearInterval(pollInterval);
-  }, []); // ← Empty deps — this interval is stable forever
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+    };
+  }, []);
 
   const handleUpload = async (file: File) => {
     if (isUploading) return;
@@ -182,6 +192,8 @@ export default function OmniFlowDashboard() {
     try {
       const formData = new FormData();
       formData.append("content", file);
+      if (webhookUrl) formData.append("webhookUrl", webhookUrl);
+      if (extractionSchema) formData.append("extractionSchema", extractionSchema);
 
       const res = await fetch("/api/upload", { method: "POST", body: formData });
 
@@ -305,7 +317,7 @@ export default function OmniFlowDashboard() {
                 OmniFlow provides the developer experience and infrastructure to build, preview, and ship intelligent document pipelines at the global edge.
               </p>
 
-              <div className="flex items-center gap-4 mb-12">
+              <div className="flex items-center gap-4 mb-4">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
@@ -325,7 +337,50 @@ export default function OmniFlowDashboard() {
                     View Workflows
                   </motion.button>
                 </Link>
+                <button 
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-2 text-sm ml-2"
+                >
+                  <Settings2 className="w-4 h-4" />
+                  Advanced Options
+                </button>
               </div>
+
+              <AnimatePresence>
+                {showAdvanced && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-10 overflow-hidden"
+                  >
+                    <div className="p-4 bg-zinc-900/50 border border-white/5 rounded-xl flex flex-col gap-4 max-w-137.5">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-medium text-zinc-400">Webhook URL (Optional)</label>
+                        <input 
+                          type="url" 
+                          value={webhookUrl}
+                          onChange={(e) => setWebhookUrl(e.target.value)}
+                          placeholder="https://api.yourdomain.com/webhook"
+                          className="bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-colors"
+                        />
+                        <p className="text-[10px] text-zinc-500">We will POST the extraction result to this URL upon completion.</p>
+                      </div>
+                      
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-medium text-zinc-400">Custom Extraction Schema (JSON Optional)</label>
+                        <textarea 
+                          value={extractionSchema}
+                          onChange={(e) => setExtractionSchema(e.target.value)}
+                          placeholder='{ "type": "OBJECT", "properties": { "invoiceNumber": { "type": "STRING" } } }'
+                          className="bg-zinc-950 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-colors h-24 font-mono resize-none"
+                        />
+                        <p className="text-[10px] text-zinc-500">Define a custom Zod-like JSON schema to override the default extraction fields.</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <input
                 type="file"
                 className="hidden"

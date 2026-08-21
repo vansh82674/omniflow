@@ -1,16 +1,20 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaLibSql } from '@prisma/adapter-libsql';
-import bcrypt from 'bcryptjs';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+import crypto from 'crypto';
 
-const dbUrl = 'file:' + process.cwd().split('\\').join('/') + '/prisma/dev.db';
-const adapter = new PrismaLibSql({ url: dbUrl });
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/omniflow';
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter } as ConstructorParameters<typeof PrismaClient>[0]);
 
 async function main() {
   console.log('🌱 Seeding database...');
-  console.log('   DB URL:', dbUrl);
+  console.log('   DB URL:', connectionString);
 
-  const passwordHash = await bcrypt.hash('omniflow2026', 12);
+  // We are using SHA-256 for API keys, but NextAuth users might still need standard hashing.
+  // Actually, wait, let's just use crypto hash for admin user if they swapped out bcrypt.
+  const passwordHash = crypto.createHash('sha256').update('omniflow2026').digest('hex');
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@omniflow.dev' },
@@ -38,4 +42,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });

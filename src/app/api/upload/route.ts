@@ -90,6 +90,8 @@ export async function POST(request: Request) {
 
     const data = await request.formData();
     const file = data.get('content') as File | string | null;
+    const webhookUrl = data.get('webhookUrl') as string | null;
+    const extractionSchema = data.get('extractionSchema') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: 'Content is required' }, { status: 400 });
@@ -138,6 +140,8 @@ export async function POST(request: Request) {
         userId,
         filename,
         fileType,
+        webhookUrl: webhookUrl ? webhookUrl.trim() : null,
+        extractionSchema: extractionSchema ? extractionSchema.trim() : null,
         status: 'created', // Non-terminal enqueue-pending state
       },
     });
@@ -146,7 +150,13 @@ export async function POST(request: Request) {
       // 2. Add to BullMQ queue using the exact same ID
       await documentQueue.add(
         'extract',
-        { content: contentToProcess, filename, dbJobId: jobId },
+        { 
+          content: contentToProcess, 
+          filename, 
+          dbJobId: jobId,
+          webhookUrl: webhookUrl ? webhookUrl.trim() : null,
+          extractionSchema: extractionSchema ? extractionSchema.trim() : null
+        },
         {
           jobId, // Explicitly set the BullMQ job ID to match Prisma
           attempts: 5,

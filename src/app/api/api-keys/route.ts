@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
-import bcrypt from 'bcryptjs';
 
 export async function GET() {
   try {
@@ -45,9 +44,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Key name is required' }, { status: 400 });
     }
 
-    // Generate a secure random API key
     const rawKey = `sk_${type === 'test' ? 'test' : 'live'}_${crypto.randomBytes(32).toString('hex')}`;
-    const keyHash = await bcrypt.hash(rawKey, 12);
+    const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
     const keyPrefix = rawKey.substring(0, 12) + '...';
 
     const apiKey = await prisma.apiKey.create({

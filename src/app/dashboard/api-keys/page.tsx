@@ -50,7 +50,7 @@ export default function ApiKeysPage() {
         const data = await res.json();
         setKeys(data);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch API keys");
     } finally {
       setIsLoading(false);
@@ -86,7 +86,7 @@ export default function ApiKeysPage() {
       } else {
         toast.error("Failed to create API key");
       }
-    } catch (e) {
+    } catch {
       toast.error("An error occurred");
     } finally {
       setIsCreating(false);
@@ -103,7 +103,7 @@ export default function ApiKeysPage() {
       } else {
         toast.error("Failed to revoke API key");
       }
-    } catch (e) {
+    } catch {
       toast.error("An error occurred");
     }
   };
