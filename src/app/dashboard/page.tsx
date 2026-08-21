@@ -12,6 +12,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import Script from "next/script";
 
 import Link from "next/link";
 import { toast } from "sonner";
@@ -235,10 +236,30 @@ export default function OmniFlowDashboard() {
 
   const handleBuyCredits = async () => {
     try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const res = await fetch("/api/razorpay/order", { method: "POST" });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (data.order) {
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: data.order.amount,
+          currency: data.order.currency,
+          name: "OmniFlow",
+          description: "Purchase 1000 Credits",
+          order_id: data.order.id,
+          handler: function () {
+            toast.success("Payment successful! Credits will be updated shortly.");
+            // Refresh metrics after a short delay
+            setTimeout(fetchDashboardData, 2000);
+          },
+          theme: {
+            color: "#2563eb"
+          }
+        };
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', function (response: any) {
+          toast.error("Payment failed: " + response.error.description);
+        });
+        rzp.open();
       } else {
         toast.error("Failed to initialize checkout.");
       }
@@ -286,8 +307,8 @@ export default function OmniFlowDashboard() {
       ];
 
   return (
-    <>
-
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col font-sans selection:bg-blue-500/30">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
         {/* Top Header */}
         <header className="h-14 border-b border-white/5 bg-zinc-950/80 backdrop-blur-md flex items-center justify-between px-6 z-20">
@@ -705,6 +726,6 @@ export default function OmniFlowDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
