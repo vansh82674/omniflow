@@ -28,7 +28,7 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-4 md:px-12 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <div className="w-8 h-8 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <Zap className="w-4 h-4 text-white fill-current" />
           </div>
           <span className="font-bold text-xl tracking-tight">OmniFlow</span>
@@ -54,7 +54,7 @@ export default function LandingPage() {
               <span>OmniFlow V1.0 is now live</span>
             </motion.div>
             
-            <motion.h1 variants={fadeInUp} className="text-6xl md:text-8xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-8 leading-[1.1]">
+            <motion.h1 variants={fadeInUp} className="text-6xl md:text-8xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-linear-to-b from-white to-white/60 mb-8 leading-[1.1]">
               Extract unstructured data with AI.
             </motion.h1>
             
@@ -83,7 +83,7 @@ export default function LandingPage() {
             transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" as const }}
             className="mt-20 w-full max-w-5xl rounded-2xl border border-white/10 bg-zinc-950/50 backdrop-blur-xl p-2 shadow-2xl relative overflow-hidden group"
           >
-            <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-t from-[#09090b] via-transparent to-transparent z-10 pointer-events-none" />
             <img 
               src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop" 
               alt="Dashboard Preview" 
