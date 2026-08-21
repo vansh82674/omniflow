@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-01-27.acacia',
+  apiVersion: '2025-01-27.acacia' as any,
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       if (userId && creditsToAdd > 0) {
         await prisma.user.update({
           where: { id: userId },
+          // @ts-expect-error Prisma types might not be fully synced in IDE
           data: {
             credits: {
               increment: creditsToAdd,

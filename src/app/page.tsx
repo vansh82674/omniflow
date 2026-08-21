@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 };
 
 const stagger = {
@@ -54,11 +54,9 @@ export default function LandingPage() {
               <span>OmniFlow V1.0 is now live</span>
             </motion.div>
             
-            <motion.variants={fadeInUp}>
-              <h1 className="text-6xl md:text-8xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-8 leading-[1.1]">
-                Extract unstructured data with AI.
-              </h1>
-            </motion.variants>
+            <motion.h1 variants={fadeInUp} className="text-6xl md:text-8xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-8 leading-[1.1]">
+              Extract unstructured data with AI.
+            </motion.h1>
             
             <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-zinc-400 leading-relaxed mb-10 max-w-3xl mx-auto tracking-tight">
               Turn PDFs, Word docs, and messy text into clean, structured JSON instantly. Built for developers with a powerful API, SDK, and Webhooks.
@@ -82,7 +80,7 @@ export default function LandingPage() {
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
             className="mt-20 w-full max-w-5xl rounded-2xl border border-white/10 bg-zinc-950/50 backdrop-blur-xl p-2 shadow-2xl relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10 pointer-events-none" />
