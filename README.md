@@ -25,6 +25,7 @@ Designed for scale, OmniFlow features real-time SSE streaming, outbound webhooks
 - 🪝 **Outbound Webhooks**: Automatically push extraction results to your own servers.
 - 📦 **Native SDK**: Built-in `@omniflow/sdk` for seamless Node.js/TypeScript integration.
 - 🏢 **Enterprise Auth**: O(1) SHA-256 API Key hashing and secure session management.
+- 💳 **Monetization & Billing**: Integrated Stripe checkout for a credit-based usage model.
 - 🗄️ **Scale Ready**: Backed by PostgreSQL and Redis (BullMQ).
 
 ---
@@ -107,6 +108,19 @@ npm run dev
 
 # Terminal 2: Extraction Worker Engine
 npm run worker
+```
+
+**Docker / Infrastructure**:
+We provide a `docker-compose.yml` to instantly spin up PostgreSQL and Redis locally:
+```bash
+docker-compose up -d
+```
+
+**Stripe (Test Mode)**:
+To test billing and the credit system, ensure you set your Stripe test keys in the `.env` file:
+```env
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
 ---
