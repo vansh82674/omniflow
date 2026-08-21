@@ -25,7 +25,7 @@ Designed for scale, OmniFlow features real-time SSE streaming, outbound webhooks
 - 🪝 **Outbound Webhooks**: Automatically push extraction results to your own servers.
 - 📦 **Native SDK**: Built-in `@omniflow/sdk` for seamless Node.js/TypeScript integration.
 - 🏢 **Enterprise Auth**: O(1) SHA-256 API Key hashing and secure session management.
-- 💳 **Monetization & Billing**: Integrated Stripe checkout for a credit-based usage model.
+- 💳 **Monetization & Billing**: Integrated Razorpay checkout for a credit-based usage model.
 - 🗄️ **Scale Ready**: Backed by PostgreSQL and Redis (BullMQ).
 
 ---
@@ -116,11 +116,12 @@ We provide a `docker-compose.yml` to instantly spin up PostgreSQL and Redis loca
 docker-compose up -d
 ```
 
-**Stripe (Test Mode)**:
-To test billing and the credit system, ensure you set your Stripe test keys in the `.env` file:
+**Razorpay (Test Mode)**:
+To test billing and the credit system, ensure you set your Razorpay test keys in the `.env` file:
 ```env
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_...
+RAZORPAY_KEY_SECRET=...
+RAZORPAY_WEBHOOK_SECRET=...
 ```
 
 ---
