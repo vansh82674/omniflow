@@ -11,18 +11,19 @@ datasource db {
 
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  password  String?  // bcrypt hash (optional for OAuth)
-  image     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  emailVerified DateTime?
+  password      String?   // bcrypt hash (optional for OAuth)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  accounts  Account[]
-  sessions  Session[]
-  jobs      Job[]
-  apiKeys   ApiKey[]
+  accounts      Account[]
+  sessions      Session[]
+  jobs          Job[]
+  apiKeys       ApiKey[]
 }
 
 model Account {

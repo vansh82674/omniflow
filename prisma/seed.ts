@@ -14,12 +14,15 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@omniflow.dev' },
-    update: {},
+    update: {
+      emailVerified: new Date(),
+    },
     create: {
       email: 'admin@omniflow.dev',
       name: 'Enterprise Admin',
       password: passwordHash,
       image: 'https://i.pravatar.cc/150?u=admin',
+      emailVerified: new Date(),
     },
   });
 

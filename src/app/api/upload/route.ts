@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { Queue } from 'bullmq';
 import { redis } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { authenticateApiRequest } from '@/lib/api-auth';
 
 const documentQueue = new Queue('document-extraction', { connection: redis });
 
@@ -71,14 +71,15 @@ async function extractTextFromFile(file: File): Promise<string> {
 
 export async function POST(request: Request) {
   try {
-    // Auth guard — must be logged in
-    const session = await auth();
-    if (!session?.user?.id) {
+    // Auth guard — must be logged in via session or API Key
+    const authResult = await authenticateApiRequest(request);
+    if (!authResult?.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const userId = authResult.userId;
 
     // Rate limiting per user ID (not just IP)
-    const rateLimitKey = session.user.id;
+    const rateLimitKey = userId;
     const isAllowed = await checkRateLimit(rateLimitKey, 10, 60); // 10 uploads/min per user
     if (!isAllowed) {
       return NextResponse.json(
@@ -126,41 +127,52 @@ export async function POST(request: Request) {
       fileType = 'txt';
     }
 
-    // Create a Job record in DB first (so we can track it)
+    // Generate a single ID to use for both Prisma and BullMQ
+    const jobId = crypto.randomUUID();
+
+    // 1. Create a Job record in DB first
     const dbJob = await prisma.job.create({
       data: {
-        userId: session.user.id,
+        id: jobId,
+        bullmqId: jobId,
+        userId,
         filename,
         fileType,
-        status: 'waiting',
+        status: 'created', // Non-terminal enqueue-pending state
       },
     });
 
-    // Add to BullMQ queue, storing filename + dbJobId in payload
-    const bullJob = await documentQueue.add(
-      'extract',
-      { content: contentToProcess, filename, dbJobId: dbJob.id },
-      {
-        attempts: 5,
-        backoff: {
-          type: 'exponential',
-          delay: 60000,
-        },
-      }
-    );
-
-    // Store the BullMQ ID back into the DB record
-    await prisma.job.update({
-      where: { id: dbJob.id },
-      data: { bullmqId: bullJob.id },
-    });
+    try {
+      // 2. Add to BullMQ queue using the exact same ID
+      await documentQueue.add(
+        'extract',
+        { content: contentToProcess, filename, dbJobId: jobId },
+        {
+          jobId, // Explicitly set the BullMQ job ID to match Prisma
+          attempts: 5,
+          backoff: {
+            type: 'exponential',
+            delay: 60000,
+          },
+        }
+      );
+    } catch (queueError) {
+      // Do not mark the job as failed here. If Redis accepted the job but the network connection dropped,
+      // the worker will still process it and update the state to completed. Overwriting it to 'failed' here
+      // would create a race condition. It remains in the 'created' enqueue-pending state for reconciliation.
+      console.error('Failed to enqueue to BullMQ:', queueError);
+      return NextResponse.json(
+        { error: 'Queue service timeout. Job may still process.' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
-      { jobId: dbJob.id, bullmqId: bullJob.id, message: 'Job added successfully' },
+      { jobId: dbJob.id, bullmqId: dbJob.bullmqId, message: 'Job added successfully' },
       { status: 202 }
     );
   } catch (error) {
-    console.error('Error adding job to queue:', error);
+    console.error('Error processing upload request:', error);
     return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
   }
 }

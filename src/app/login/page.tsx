@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BrainCircuit, Mail, ArrowRight, Command } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [showSplash, setShowSplash] = useState(true);
@@ -29,7 +30,11 @@ export default function LoginPage() {
       redirect: false,
     });
     if (res?.error) {
-      setError("Invalid email or password. Please try again.");
+      if (res.error === "Configuration" || res.error === "EmailNotVerified") {
+        setError("Please check your email and verify your account first.");
+      } else {
+        setError("Invalid email or password. Please try again.");
+      }
     } else {
       router.push("/dashboard");
       router.refresh();
@@ -137,6 +142,13 @@ export default function LoginPage() {
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </form>
+
+              <div className="mt-6 text-center text-sm text-zinc-400">
+                Don&apos;t have an account?{" "}
+                <Link href="/register" className="text-white hover:underline transition-all">
+                  Sign up
+                </Link>
+              </div>
 
               <div className="mt-6 flex items-center gap-3">
                 <div className="h-px bg-white/10 flex-1" />

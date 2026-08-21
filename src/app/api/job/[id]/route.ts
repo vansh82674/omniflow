@@ -1,23 +1,23 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
-
+import { authenticateApiRequest } from '@/lib/api-auth';
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const authResult = await authenticateApiRequest(request);
+    if (!authResult?.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const userId = authResult.userId;
 
     const { id } = await params;
 
     const job = await prisma.job.findFirst({
       where: {
         id,
-        userId: session.user.id, // users can only access their own jobs
+        userId, // users can only access their own jobs
       },
     });
 

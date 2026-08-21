@@ -116,7 +116,7 @@ export default function ApiKeysPage() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto w-full min-h-screen relative">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -325,11 +325,11 @@ export default function ApiKeysPage() {
                   
                   <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6 text-amber-500/90 text-sm">
                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-                    <p>Do not expose this key in your client-side code (browsers, apps). Keep it strictly on your secure backend.</p>
+                    <p>We&apos;ll only show you your API key once. Please save it somewhere safe. Do not expose this key in your client-side code (browsers, apps). Keep it strictly on your secure backend.</p>
                   </div>
                   
                   <Button onClick={closeCreateModal} className="w-full bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl py-6">
-                    I've saved it securely
+                    I&apos;ve saved it securely
                   </Button>
                 </>
               )}
