@@ -11,7 +11,7 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    const [totalJobs, completedJobs, failedJobs, recentJobs] = await Promise.all([
+    const [totalJobs, completedJobs, failedJobs, recentJobs, userRecord] = await Promise.all([
       prisma.job.count({ where: { userId } }),
       prisma.job.count({ where: { userId, status: 'completed' } }),
       prisma.job.count({ where: { userId, status: 'failed' } }),
@@ -22,6 +22,7 @@ export async function GET() {
           createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
         },
       }),
+      prisma.user.findUnique({ where: { id: userId }, select: { credits: true } })
     ]);
 
     const successRate =
@@ -35,6 +36,7 @@ export async function GET() {
       failedJobs,
       recentJobs,
       successRate: `${successRate}%`,
+      credits: userRecord?.credits ?? 0,
     });
   } catch (error) {
     console.error('Error fetching metrics:', error);

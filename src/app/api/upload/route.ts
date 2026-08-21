@@ -88,6 +88,15 @@ export async function POST(request: Request) {
       );
     }
 
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (user.credits < 10) {
+      return NextResponse.json({ error: 'Insufficient credits (10 required).' }, { status: 402 });
+    }
+
     const data = await request.formData();
     const file = data.get('content') as File | string | null;
     const webhookUrl = data.get('webhookUrl') as string | null;
@@ -144,6 +153,12 @@ export async function POST(request: Request) {
         extractionSchema: extractionSchema ? extractionSchema.trim() : null,
         status: 'created', // Non-terminal enqueue-pending state
       },
+    });
+
+    // Deduct 10 credits
+    await prisma.user.update({
+      where: { id: userId },
+      data: { credits: { decrement: 10 } },
     });
 
     try {

@@ -20,6 +20,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Stripe & Billing
+  stripeCustomerId String? @unique
+  stripeSessionId  String?
+  credits          Int       @default(100)
+
   accounts      Account[]
   sessions      Session[]
   jobs          Job[]

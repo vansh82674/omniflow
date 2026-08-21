@@ -32,6 +32,7 @@ type Metrics = {
   failedJobs: number;
   recentJobs: number;
   successRate: string;
+  credits?: number;
 };
 
 // --- Animations ---
@@ -232,6 +233,20 @@ export default function OmniFlowDashboard() {
     }
   };
 
+  const handleBuyCredits = async () => {
+    try {
+      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Failed to initialize checkout.");
+      }
+    } catch {
+      toast.error("Failed to connect to billing server.");
+    }
+  };
+
   const metricCards = metrics
     ? [
         {
@@ -282,6 +297,15 @@ export default function OmniFlowDashboard() {
             <span className="text-zinc-100">Overview</span>
           </div>
           <div className="flex items-center gap-4">
+            {metrics !== null && (
+              <div className="flex items-center gap-2 bg-zinc-900 border border-white/10 rounded-full px-3 py-1">
+                <span className="text-xs font-medium text-zinc-400">Credits:</span>
+                <span className="text-xs font-bold text-zinc-100">{metrics.credits ?? 0}</span>
+                <button onClick={handleBuyCredits} className="ml-2 text-[10px] bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 px-2 py-0.5 rounded-full transition-colors">
+                  Top Up
+                </button>
+              </div>
+            )}
             <div className="relative group hidden sm:block">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input

@@ -21,6 +21,10 @@ jest.mock('@/lib/prisma', () => ({
       create: jest.fn(),
       update: jest.fn(),
     },
+    user: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
   },
 }));
 
@@ -46,7 +50,9 @@ describe('Upload API Route', () => {
   });
 
   it('CodeRabbit constraint: should not mark job as failed on ambiguous enqueue error', async () => {
-    // Setup: Prisma create succeeds, but bullmq queue.add fails (mocked above)
+    // Setup: User has credits, Prisma create succeeds, but bullmq queue.add fails (mocked above)
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'test-user-id', credits: 100 });
+    (prisma.user.update as jest.Mock).mockResolvedValue({});
     (prisma.job.create as jest.Mock).mockResolvedValue({ id: 'mock-job-id' });
 
     // Create a mock Request with form data
