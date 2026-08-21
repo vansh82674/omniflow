@@ -38,8 +38,7 @@ export async function POST(req: Request) {
 
       await prisma.user.update({
         where: { id: user.id },
-        // @ts-expect-error Prisma types might not be fully synced in IDE
-        data: { stripeCustomerId: customerId },
+        data: { stripeCustomerId: customerId } as any,
       });
     }
 

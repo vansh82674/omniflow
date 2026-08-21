@@ -159,8 +159,7 @@ export async function POST(request: Request) {
     // Deduct 10 credits
     await prisma.user.update({
       where: { id: userId },
-      // @ts-expect-error Prisma types might not be fully synced in IDE
-      data: { credits: { decrement: 10 } },
+      data: { credits: { decrement: 10 } } as any,
     });
 
     try {

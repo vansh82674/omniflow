@@ -31,12 +31,9 @@ export async function POST(req: Request) {
       if (userId && creditsToAdd > 0) {
         await prisma.user.update({
           where: { id: userId },
-          // @ts-expect-error Prisma types might not be fully synced in IDE
           data: {
-            credits: {
-              increment: creditsToAdd,
-            },
-          },
+            credits: { increment: creditsToAdd },
+          } as any,
         });
         console.log(`[Stripe Webhook] Added ${creditsToAdd} credits to user ${userId}`);
       }

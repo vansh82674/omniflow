@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } }
 };
 
 const stagger = {
@@ -80,7 +80,7 @@ export default function LandingPage() {
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
+            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" as const }}
             className="mt-20 w-full max-w-5xl rounded-2xl border border-white/10 bg-zinc-950/50 backdrop-blur-xl p-2 shadow-2xl relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10 pointer-events-none" />
