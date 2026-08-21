@@ -1,135 +1,134 @@
-# OmniFlow
-
-**OmniFlow** is a developer-first document intelligence platform. Upload any document (PDF, DOCX, TXT, CSV) and OmniFlow uses Gemini AI to extract structured data — title, summary, entities, key points, document type, and more — returned as clean JSON via an async job queue.
+<div align="center">
+  <img src="https://i.imgur.com/your-logo.png" alt="OmniFlow Logo" width="120" />
+  <h1>OmniFlow</h1>
+  <p><strong>The Developer-First Document Intelligence Platform</strong></p>
+  
+  [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](#)
+  [![Version](https://img.shields.io/badge/version-1.0.0-blue)](#)
+  [![NPM SDK](https://img.shields.io/badge/npm-@omniflow/sdk-red)](#)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+</div>
 
 ---
 
-## Architecture
+**OmniFlow** is an enterprise-grade document intelligence API. Upload any document (PDF, DOCX, TXT, CSV) and OmniFlow uses Google Gemini AI to extract strictly typed, structured data — returned as clean JSON via an asynchronous job queue. 
 
+Designed for scale, OmniFlow features real-time SSE streaming, outbound webhooks, dynamic Zod schemas, and a lightweight Node.js SDK.
+
+---
+
+## ✨ Features
+
+- 🧠 **AI Extraction Engine**: Powered by Google Gemini 3.6 Flash for high-accuracy parsing.
+- 📐 **Dynamic Zod Schemas**: Define your own custom JSON extraction schemas per-request.
+- ⚡ **Real-Time Pipeline**: Server-Sent Events (SSE) stream job states instantly to the dashboard.
+- 🪝 **Outbound Webhooks**: Automatically push extraction results to your own servers.
+- 📦 **Native SDK**: Built-in `@omniflow/sdk` for seamless Node.js/TypeScript integration.
+- 🏢 **Enterprise Auth**: O(1) SHA-256 API Key hashing and secure session management.
+- 🗄️ **Scale Ready**: Backed by PostgreSQL and Redis (BullMQ).
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph LR
+    A[Client / Browser] -->|POST /api/upload| B(Next.js App)
+    B -->|Enqueue Job| C[(Redis Queue)]
+    B -->|Save State| D[(PostgreSQL)]
+    C -->|Process| E[BullMQ Worker]
+    E <-->|Extract| F[Gemini Flash API]
+    E -->|Update State| D
+    E -->|POST| G[Client Webhook]
+    B -->|SSE Stream| A
 ```
-Browser ──POST /api/upload──> Next.js App ──enqueue──> BullMQ (Redis)
-                                                             │
-                                                         Worker process
-                                                             │
-                                                       Gemini Flash API
-                                                             │
-                                                       Prisma (SQLite)
-                                                             │
-                              Next.js App <──poll /api/job/[id]── Browser
+
+---
+
+## 💻 Quick Start
+
+### 1. The NPM SDK
+The fastest way to integrate OmniFlow into your application is using our official SDK.
+
+```bash
+npm install @omniflow/sdk
 ```
 
-- **Frontend**: Next.js 15 App Router + Framer Motion + shadcn/ui
-- **Queue**: BullMQ with Redis (exponential backoff, 5 retries)
-- **AI**: Google Gemini `gemini-2.0-flash` with structured JSON output
-- **Database**: SQLite via Prisma + LibSQL adapter
-- **Auth**: NextAuth v5 (credentials, bcrypt hashed passwords)
+```typescript
+import { OmniFlowClient } from '@omniflow/sdk';
 
----
+const client = new OmniFlowClient({ apiKey: 'omni_your_api_key' });
 
-## Prerequisites
+// Extract with a custom schema and webhook
+const job = await client.extract({
+  file: myDocumentBuffer,
+  filename: 'invoice.pdf',
+  webhookUrl: 'https://my-app.com/webhooks/omniflow',
+  extractionSchema: {
+    type: 'object',
+    properties: {
+      totalAmount: { type: 'number' },
+      merchantName: { type: 'string' }
+    }
+  }
+});
 
-- **Node.js** 20+
-- **Redis** running locally (`redis://localhost:6379`) or set `REDIS_URL` to an Upstash URL
-- **Google Gemini API key** — get one at [ai.google.dev](https://ai.google.dev)
+console.log('Job queued:', job.jobId);
+```
 
----
+### 2. Self-Hosting / Local Development
 
-## Setup
+**Prerequisites**:
+- Node.js 20+
+- PostgreSQL database
+- Redis server (`redis://localhost:6379`)
+- Google Gemini API key
 
-### 1. Clone & install
-
+**Setup**:
 ```bash
 git clone https://github.com/vansh82674/omniflow.git
 cd omniflow
 npm install
-npm install-scripts approve prisma @prisma/engines esbuild
-```
-
-### 2. Configure environment
-
-Copy `.env.example` to `.env` and fill in your values:
-
-```bash
 cp .env.example .env
 ```
 
-Required variables:
-
-| Variable | Description |
-|---|---|
-| `REDIS_URL` | Redis connection string (default: `redis://localhost:6379`) |
-| `GEMINI_API_KEY` | Google Gemini API key |
-| `AUTH_SECRET` | Random secret for NextAuth JWT signing |
-| `DATABASE_URL` | SQLite path (default: `file:./prisma/dev.db`) |
-
-### 3. Initialize the database
-
+**Database Initialization**:
 ```bash
 npx prisma migrate dev --name init
 npx tsx prisma/seed.ts
 ```
+*(This seeds a default admin user: `admin@omniflow.dev` / `omniflow2026`)*
 
-This creates a SQLite database and seeds a default admin user:
-- **Email**: `admin@omniflow.dev`
-- **Password**: `omniflow2026`
-
-### 4. Run the app
-
-You need **two terminals**:
-
-**Terminal 1 — Next.js dev server:**
+**Run the Platform**:
+You need two processes running simultaneously.
 ```bash
+# Terminal 1: Web App & Dashboard
 npm run dev
-```
 
-**Terminal 2 — BullMQ worker:**
-```bash
+# Terminal 2: Extraction Worker Engine
 npm run worker
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and sign in.
+---
+
+## 📚 Developer Portal & API Docs
+
+OmniFlow provides full interactive OpenAPI documentation. 
+
+Once running locally, navigate to `http://localhost:3000/docs` to view the **Swagger UI**. You can generate API Keys in your dashboard and test the REST endpoints directly from the browser.
 
 ---
 
-## Usage
+## 🛠️ Tech Stack
 
-1. **Sign in** at `/login`
-2. On the dashboard, **drag & drop** any document or click **"Start Deploying"**
-3. Supported formats: PDF, DOCX, DOC, TXT, MD, CSV (up to 10MB)
-4. Watch the **Active Pipeline** panel as your job is processed
-5. Once complete, click the **→** icon on any extraction to view the structured JSON result
-6. View **API Keys** at `/dashboard/api-keys` to create keys for programmatic access
-
----
-
-## API
-
-### `POST /api/upload`
-Upload a document for extraction. Requires auth.
-
-**Body**: `multipart/form-data` with `content` field (File or text string)
-
-**Response**: `{ jobId: string, message: string }`
-
-### `GET /api/job/[id]`
-Poll extraction status. Requires auth. Only returns jobs owned by the authenticated user.
-
-**Response**: `{ id, name, status, result, fileType, timestamp }`
-
-### `GET /api/jobs`
-List all jobs for the authenticated user.
-
-### `GET /api/metrics`
-Return aggregated stats for the authenticated user.
+- **Frontend**: Next.js 15 (App Router), TailwindCSS v4, Framer Motion, shadcn/ui.
+- **Backend API**: Next.js Route Handlers, Server-Sent Events (SSE).
+- **Worker/Queue**: Node.js, BullMQ, Redis.
+- **Database**: PostgreSQL via Prisma (`pg` adapter).
+- **Authentication**: NextAuth.js (v5), Custom SHA-256 API Key hashing.
 
 ---
 
-## Scripts
+## 📄 License
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start Next.js dev server with Turbopack |
-| `npm run worker` | Start the BullMQ extraction worker |
-| `npm run build` | Build for production |
-| `npx prisma studio` | Open Prisma database GUI |
-| `npx tsx prisma/seed.ts` | Re-seed the database |
+This project is licensed under the MIT License.
