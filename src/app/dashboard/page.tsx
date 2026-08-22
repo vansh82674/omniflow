@@ -373,15 +373,7 @@ export default function OmniFlowDashboard() {
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   {isUploading ? "Uploading..." : "Start Deploying"}
                 </motion.button>
-                <Link href="/dashboard/workflows">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="bg-transparent border border-white/10 hover:bg-white/5 text-white text-sm font-medium px-6 py-2.5 rounded-full transition-all"
-                  >
-                    View Workflows
-                  </motion.button>
-                </Link>
+
                 <button 
                   onClick={() => setShowAdvanced(!showAdvanced)}
                   className="text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-2 text-sm ml-2"
