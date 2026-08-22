@@ -22,7 +22,6 @@ export async function GET() {
           createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
         },
       }),
-      // @ts-expect-error Prisma types might not be fully synced in IDE
       prisma.user.findUnique({ where: { id: userId }, select: { credits: true } })
     ]);
 
@@ -37,7 +36,6 @@ export async function GET() {
       failedJobs,
       recentJobs,
       successRate: `${successRate}%`,
-      // @ts-expect-error Prisma types might not be fully synced in IDE
       credits: userRecord?.credits ?? 0,
     });
   } catch (error) {
