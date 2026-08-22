@@ -1,18 +1,20 @@
-import { redis } from './redis';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// Initialize Upstash Redis instance
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL || '',
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+});
 
 export async function checkRateLimit(ip: string, limit: number, windowSecs: number) {
-  const key = `rate-limit:${ip}`;
-  
-  // Use a Redis transaction to ensure atomic increment and expire
-  const [current] = await redis
-    .multi()
-    .incr(key)
-    .expire(key, windowSecs, 'NX') // 'NX' only sets expiry if it doesn't already have one
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .exec() as any;
+  // Use a sliding window rate limiter
+  const ratelimit = new Ratelimit({
+    redis: redis,
+    limiter: Ratelimit.slidingWindow(limit, `${windowSecs} s`),
+    analytics: true,
+  });
 
-  // current[1] contains the result of the INCR command
-  const requestCount = current[1] as number;
-  
-  return requestCount <= limit;
+  const { success } = await ratelimit.limit(`rate-limit:${ip}`);
+  return success;
 }
