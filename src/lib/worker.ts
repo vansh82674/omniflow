@@ -181,8 +181,21 @@ worker.on('failed', (job, err) => {
   console.log(`[Worker] ❌ Job ${job?.id} has failed: ${err.message}`);
 });
 
+import * as http from 'http';
+
 worker.on('error', (err) => {
   console.error('[Worker] Worker error:', err);
 });
 
 console.log('[Worker] 🚀 OmniFlow extraction worker started and listening...');
+
+// Dummy HTTP server to satisfy Render's Web Service port binding requirement
+const port = process.env.PORT || 8080;
+const server = http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end('Worker is alive');
+});
+
+server.listen(port, () => {
+  console.log(`[Worker] Dummy HTTP server listening on port ${port} (Render Web Service bypass)`);
+});
