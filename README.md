@@ -128,17 +128,17 @@ RAZORPAY_WEBHOOK_SECRET=...
 
 ## 📚 Developer Portal & API Docs
 
-OmniFlow provides full interactive OpenAPI documentation. 
+OmniFlow provides a bespoke, lightning-fast interactive API Reference. 
 
-Once running locally, navigate to `http://localhost:3000/docs` to view the **Swagger UI**. You can generate API Keys in your dashboard and test the REST endpoints directly from the browser.
+Once running locally, navigate to `http://localhost:3000/docs`. You can generate API Keys in your dashboard, view exactly how to structure your multi-part form requests, and test the endpoints directly from the interactive code snippets.
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 15 (App Router), TailwindCSS v4, Framer Motion, shadcn/ui.
-- **Backend API**: Next.js Route Handlers, Server-Sent Events (SSE).
-- **Worker/Queue**: Node.js, BullMQ, Redis.
+- **Backend API**: Next.js Route Handlers, Server-Sent Events (SSE), `@upstash/ratelimit`.
+- **Worker/Queue**: Node.js, BullMQ, Redis (Upstash/ioredis).
 - **Database**: PostgreSQL via Prisma (`pg` adapter).
 - **Authentication**: NextAuth.js (v5), Custom SHA-256 API Key hashing.
 
