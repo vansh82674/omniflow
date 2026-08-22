@@ -6,8 +6,8 @@ import Razorpay from 'razorpay';
 export async function POST(req: Request) {
   try {
     const auth = await authenticateApiRequest(req);
-    if ('error' in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const { userId } = auth;
 
