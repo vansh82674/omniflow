@@ -5,7 +5,11 @@ WORKDIR /app
 # Copy package.json and lockfile
 COPY package.json package-lock.json ./
 
-# Install dependencies
+# Copy Prisma schema and config so postinstall can run `prisma generate`
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+
+# Install dependencies (this will run postinstall -> prisma generate)
 RUN npm ci
 
 # Copy the rest of the application
@@ -22,9 +26,7 @@ COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/prisma ./prisma
 
-# Generate prisma client (requires the database URL via build arg or run at runtime, but we'll do it on start for simplicity or pre-build)
-# Running generate here to ensure types and client are ready
-RUN npx prisma generate
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 # Set production environment
 ENV NODE_ENV=production
