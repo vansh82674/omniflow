@@ -27,7 +27,7 @@ export default function ApiDocsPage() {
       <div className="relative max-w-7xl mx-auto px-6 py-12 flex flex-col lg:flex-row gap-12">
         
         {/* Left Sidebar Navigation */}
-        <aside className="w-full lg:w-64 flex-shrink-0 pt-8">
+        <aside className="w-full lg:w-64 shrink-0 pt-8">
           <div className="sticky top-24">
             <Link href="/" className="text-xl font-bold tracking-tight text-white flex items-center gap-2 mb-10 hover:opacity-80 transition-opacity">
               <Zap className="w-6 h-6 text-blue-500" />
@@ -156,7 +156,7 @@ export default function ApiDocsPage() {
                   <div className="space-y-6">
                     {/* cURL Snippet */}
                     <div className="border border-white/10 bg-[#0c0c0e] rounded-xl overflow-hidden group">
-                      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/[0.02]">
+                      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/2">
                         <span className="text-xs font-mono text-zinc-400">cURL Example</span>
                         <button 
                           onClick={() => copyToClipboard(`curl -X POST https://api.omniflow.com/api/upload \\
@@ -176,7 +176,7 @@ export default function ApiDocsPage() {
 
                     {/* Response Snippet */}
                     <div className="border border-white/10 bg-[#0c0c0e] rounded-xl overflow-hidden group">
-                      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/[0.02]">
+                      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/2">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                           <span className="text-xs font-mono text-emerald-400">202 Accepted</span>
@@ -248,7 +248,7 @@ export default function ApiDocsPage() {
                   <div className="space-y-6">
                     {/* cURL Snippet */}
                     <div className="border border-white/10 bg-[#0c0c0e] rounded-xl overflow-hidden group">
-                      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/[0.02]">
+                      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/2">
                         <span className="text-xs font-mono text-zinc-400">cURL Example</span>
                         <button 
                           onClick={() => copyToClipboard(`curl -X GET https://api.omniflow.com/api/job/f47ac10b-58cc-4372-a567-0e02b2c3d479 \\
@@ -266,7 +266,7 @@ export default function ApiDocsPage() {
 
                     {/* Response Snippet */}
                     <div className="border border-white/10 bg-[#0c0c0e] rounded-xl overflow-hidden group">
-                      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/[0.02]">
+                      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/2">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                           <span className="text-xs font-mono text-emerald-400">200 OK</span>
