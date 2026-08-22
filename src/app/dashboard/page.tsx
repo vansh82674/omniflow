@@ -66,6 +66,8 @@ export default function OmniFlowDashboard() {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [extractionSchema, setExtractionSchema] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showNotifications, setShowNotifications] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Track active job IDs in a ref
@@ -331,6 +333,8 @@ export default function OmniFlowDashboard() {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search documents..."
                 className="h-8 w-64 bg-zinc-900 border border-white/10 rounded-full pl-9 pr-4 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-all group-hover:bg-zinc-800/80"
               />
@@ -339,9 +343,46 @@ export default function OmniFlowDashboard() {
                 <span className="text-[10px] text-zinc-500 font-mono">K</span>
               </div>
             </div>
-            <button className="text-zinc-400 hover:text-zinc-100 transition-colors">
-              <Bell className="w-4 h-4" />
-            </button>
+            
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="text-zinc-400 hover:text-zinc-100 transition-colors relative"
+              >
+                <Bell className="w-4 h-4" />
+                {historyJobs.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border border-zinc-950" />
+                )}
+              </button>
+              
+              <AnimatePresence>
+                {showNotifications && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 mt-3 w-72 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+                  >
+                    <div className="px-4 py-3 border-b border-white/5 bg-zinc-900/50">
+                      <h4 className="text-xs font-semibold text-zinc-200">Recent Notifications</h4>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto p-2">
+                      {historyJobs.slice(0, 3).map((job) => (
+                        <div key={job.id} className="p-3 hover:bg-white/5 rounded-lg transition-colors flex flex-col gap-1 cursor-pointer" onClick={() => { setShowNotifications(false); if(job.result) setSelectedResult(job.result); }}>
+                          <span className="text-xs font-medium text-zinc-200 truncate">{job.name}</span>
+                          <span className={`text-[10px] ${job.status === "completed" ? "text-emerald-400" : "text-rose-400"}`}>
+                            {job.status === "completed" ? "Extraction successful" : "Extraction failed"}
+                          </span>
+                        </div>
+                      ))}
+                      {historyJobs.length === 0 && (
+                        <div className="p-4 text-center text-xs text-zinc-500">No new notifications</div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </header>
 
@@ -476,7 +517,10 @@ export default function OmniFlowDashboard() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {historyJobs.slice(0, 8).map((item, i) => (
+                        {historyJobs
+                          .filter(job => job.name.toLowerCase().includes(searchQuery.toLowerCase()) || job.id.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .slice(0, 8)
+                          .map((item, i) => (
                           <tr key={`${item.id}-${i}`} className="hover:bg-white/2 transition-colors group">
                             <td className="px-4 py-3 font-medium text-zinc-200">
                               <div className="flex items-center gap-2">
@@ -520,7 +564,7 @@ export default function OmniFlowDashboard() {
                             </td>
                           </tr>
                         ))}
-                        {historyJobs.length === 0 && (
+                        {historyJobs.filter(job => job.name.toLowerCase().includes(searchQuery.toLowerCase()) || job.id.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
                           <tr>
                             <td colSpan={4} className="px-4 py-10 text-center text-zinc-500 text-xs">
                               <div className="flex flex-col items-center gap-2">
