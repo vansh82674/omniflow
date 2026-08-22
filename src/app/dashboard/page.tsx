@@ -217,7 +217,16 @@ export default function OmniFlowDashboard() {
         setQueue(prev => prev.filter(q => q.id !== tempId));
         return;
       }
-      if (!res.ok) throw new Error("Upload failed");
+      if (res.status === 402) {
+        toast.error("Insufficient credits. Please top up your account to continue processing documents.");
+        setQueue(prev => prev.filter(q => q.id !== tempId));
+        return;
+      }
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Upload failed due to a server error.");
+      }
 
       const data = await res.json();
 
@@ -227,8 +236,8 @@ export default function OmniFlowDashboard() {
       );
       activeJobIdsRef.current.add(data.jobId);
       toast.success(`${file.name} queued for extraction.`);
-    } catch {
-      toast.error("Failed to upload document. Please try again.");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to upload document. Please try again.");
       setQueue(prev => prev.filter(q => q.id !== tempId));
     } finally {
       setIsUploading(false);
