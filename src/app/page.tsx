@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Code, Zap, Database, Lock, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Code, Zap, Database, Lock, CheckCircle2, BrainCircuit } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -29,7 +29,7 @@ export default function LandingPage() {
       <nav className="relative z-10 flex items-center justify-between px-6 py-4 md:px-12 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Zap className="w-4 h-4 text-white fill-current" />
+            <BrainCircuit className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold text-xl tracking-tight">OmniFlow</span>
         </div>
